@@ -1,1 +1,26 @@
+# Environment files
 .env
+.env.*
+!.env.example
+
+# Docker volumes and data
+n8n_data/
+postgres_data/
+lab_evolution_instances/
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Backup files
+*.backup
