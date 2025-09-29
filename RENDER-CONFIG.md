@@ -44,7 +44,7 @@ N8N_DEFAULT_TIMEZONE=America/Recife
 ### 2. **Criar Web Service**
 - **Runtime**: `Docker`
 - **Build Command**: deixar vazio
-- **Start Command**: `/usr/local/bin/start-n8n.sh`
+- **Start Command**: deixar vazio (usar padrão do Dockerfile)
 
 ### 3. **Configurar Variáveis de Ambiente**
 Use os dados do PostgreSQL criado no passo 1:
