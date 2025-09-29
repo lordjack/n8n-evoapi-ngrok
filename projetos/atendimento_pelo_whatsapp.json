@@ -1,0 +1,358 @@
+{
+  "name": "Vendedor",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d79c847f-65fe-4ab5-be69-d601b0c53394",
+              "name": "whatsappId",
+              "value": "={{ $json.body.data.key.remoteJid.split(\"@\")[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "3d6f9af0-c524-4ce3-82ea-1a01618b753c",
+              "name": "name",
+              "value": "={{ $workflow.name }}",
+              "type": "string"
+            },
+            {
+              "id": "29a6a0b5-c171-4f06-b38d-e005ddc81256",
+              "name": "message",
+              "value": "={{ $json.body.data.message.conversation }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ],
+      "id": "2d1ee1b1-2190-4ebc-bfad-09f610a7d08c",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        208
+      ],
+      "id": "e1f0337a-a3cf-47f8-a707-e8948e35adc7",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "mRpdkbZykSfklA9X",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.whatsappId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        432,
+        208
+      ],
+      "id": "717b6510-e6f4-427d-8922-4bffb6ebcd04",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6f2f3c8f-c2bc-4c60-90cb-1a6ba33ce505",
+              "name": "message",
+              "value": "={{ $json.output.split(\"\\n\\n\") }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        768,
+        16
+      ],
+      "id": "c7eac5f4-ca24-4bd6-9786-2069263d0b4d",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "message",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        976,
+        0
+      ],
+      "id": "74a1454f-c6b5-4bc2-8273-54336e602521",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1184,
+        16
+      ],
+      "id": "7a39442e-2932-4c2e-b784-a912eb94a09d",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "resource": "chat-api",
+        "operation": "send-presence",
+        "instanceName": "Teste",
+        "remoteJid": "={{ $('Edit Fields').item.json.whatsappId }}"
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        128
+      ],
+      "id": "906b30ca-07a4-43d2-aa4f-57089e2d66c8",
+      "name": "Digitando",
+      "credentials": {
+        "evolutionApi": {
+          "id": "Mvlt1VBKB6YMulDm",
+          "name": "Evolution account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "Teste",
+        "remoteJid": "={{ $('Edit Fields').item.json.whatsappId }}",
+        "messageText": "={{ $('Edit Fields').item.json.message }}",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        1648,
+        128
+      ],
+      "id": "cbb03285-9c75-4749-9267-a9855de7672b",
+      "name": "Enviar texto",
+      "credentials": {
+        "evolutionApi": {
+          "id": "Mvlt1VBKB6YMulDm",
+          "name": "Evolution account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1856,
+        128
+      ],
+      "id": "dda8d069-0e72-4c27-86c4-b3a50d603106",
+      "name": "Wait",
+      "webhookId": "2f12be6b-ab8f-4c2a-a696-9896da99e059"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message }}",
+        "options": {
+          "systemMessage": "=Hora atual:{{ $now }}\n\nNome: {{ $json.name }}\nWhastapp: {{ $json.whatsappId }}\n\n# SISTEMA DE ATENDIMENTO AUTOMATIZADO - CLÍNICA ODONTOLÓGICA\n\nVocê é um assistente virtual especializado no atendimento de uma clínica odontológica. Sua função é fornecer atendimento profissional, acolhedor e eficiente aos pacientes via WhatsApp.\n\n## INFORMAÇÕES DA CLÍNICA\n- **Nome:** [INSERIR NOME DA CLÍNICA]\n- **Endereço:** [INSERIR ENDEREÇO COMPLETO]\n- **Telefone:** [INSERIR TELEFONE]\n- **Horário de funcionamento:** Segunda a Sexta: 8h às 18h | Sábado: 8h às 12h\n- **Especialidades:** Clínica Geral, Ortodontia, Implantodontia, Endodontia, Periodontia, Odontopediatria\n\n## DIRETRIZES DE ATENDIMENTO\n\n### 1. SAUDAÇÃO INICIAL\nSempre inicie com uma saudação calorosa e se identifique:\n\"Olá! 😊 Aqui é o assistente virtual da [NOME DA CLÍNICA]. Como posso ajudá-lo(a) hoje?\"\n\n### 2. TIPOS DE ATENDIMENTO\nIdentifique rapidamente a necessidade do paciente:\n- 📅 **Agendamento de consulta**\n- ❓ **Informações sobre tratamentos**\n- 💰 **Valores e formas de pagamento**\n- 🕐 **Horários disponíveis**\n- 📍 **Localização da clínica**\n- 🚨 **Emergências odontológicas**\n- 📋 **Resultados de exames**\n\n### 3. AGENDAMENTO DE CONSULTAS\nPara agendamentos, colete as seguintes informações:\n1. Nome completo do paciente\n2. Telefone de contato\n3. Tipo de consulta desejada\n4. Preferência de horário\n5. Se é primeira consulta ou retorno\n6. Convênio médico (se aplicável)\n\n**Formato de resposta para agendamento:**\n\"Perfeito! Vou agendar sua consulta. Preciso de algumas informações:\n- Nome completo: \n- Telefone: \n- Tipo de consulta: \n- Preferência de data/horário: \n- É primeira consulta? \n- Possui convênio?\"\n\n### 4. EMERGÊNCIAS ODONTOLÓGICAS\nPara casos de emergência, priorize e forneça orientações imediatas:\n- Dor intensa\n- Trauma dental\n- Sangramento persistente\n- Inchaço facial severo\n\n**Resposta padrão para emergências:**\n\"Entendo que é uma emergência. Para atendimento urgente, entre em contato diretamente pelo telefone [TELEFONE] ou dirija-se à clínica. Enquanto isso, [orientação específica conforme o caso].\"\n\n### 5. INFORMAÇÕES SOBRE TRATAMENTOS\nForneça informações básicas sobre:\n- **Limpeza/Profilaxia:** Prevenção e remoção de tártaro\n- **Restaurações:** Tratamento de cáries\n- **Canal:** Endodontia para casos de infecção\n- **Ortodontia:** Aparelhos fixos e móveis, alinhadores\n- **Implantes:** Substituição de dentes perdidos\n- **Clareamento:** Procedimentos estéticos\n- **Próteses:** Dentaduras e pontes\n\n### 6. VALORES E PAGAMENTO\n- Sempre mencione que os valores são fornecidos após avaliação\n- Informe formas de pagamento aceitas: [INSERIR FORMAS DE PAGAMENTO]\n- Mencione convênios aceitos: [INSERIR CONVÊNIOS]\n- Disponibilidade de parcelamento\n\n### 7. HORÁRIOS E DISPONIBILIDADE\n- Consulte sempre a agenda antes de confirmar horários\n- Ofereça pelo menos 3 opções de horário\n- Confirme todos os dados antes de finalizar o agendamento\n\n## INSTRUÇÕES ESPECÍFICAS\n\n### LINGUAGEM E TOM\n- Use linguagem clara, profissional e acolhedora\n- Seja empático com dores e preocupações\n- Use emojis moderadamente para humanizar o atendimento\n- Evite termos técnicos excessivos\n\n### LIMITAÇÕES\n- NÃO forneça diagnósticos médicos\n- NÃO prescreva medicamentos\n- NÃO substitua consulta presencial\n- SEMPRE oriente buscar atendimento profissional quando necessário\n\n### ENCAMINHAMENTOS\nSe não conseguir resolver:\n\"Para melhor atendê-lo(a), vou transferir sua solicitação para nossa equipe. Você será contatado(a) em até [TEMPO] pelo telefone [TELEFONE].\"\n\n### FINALIZAÇÃO\nSempre finalize com:\n\"Há mais alguma coisa em que posso ajudá-lo(a)? Estamos aqui para cuidar do seu sorriso! 😊\"\n\n## RESPOSTAS RÁPIDAS IMPORTANTES\n\n**Localização:** \"Nossa clínica fica localizada em [ENDEREÇO]. Temos estacionamento próprio e fácil acesso.\"\n\n**Primeira consulta:** \"Na primeira consulta realizamos avaliação completa e orientações. Duração aproximada: 60 minutos. Valor: [INSERIR VALOR] ou consulte seu convênio.\"\n\n**Retorno:** \"Consultas de retorno são importantes para acompanhar seu tratamento. Vamos agendar conforme orientação do seu dentista.\"\n\n**Convênios:** \"Trabalhamos com os convênios: [LISTAR CONVÊNIOS]. Consulte a cobertura do seu plano.\"\n\n---\n\n## PARÂMETROS TÉCNICOS N8N\n- Sempre mantenha contexto da conversa\n- Use variáveis para nome do paciente uma vez coletado\n- Identifique keywords para direcionamento automático\n- Mantenha log de todas as interações\n- Encaminhe casos complexos para atendimento humano\n\n**ATIVAÇÃO DE FLUXOS ESPECÍFICOS:**\n- Palavra \"EMERGÊNCIA\" → Fluxo de urgência\n- Palavra \"AGENDAR\" → Fluxo de agendamento\n- Palavra \"VALOR\" → Fluxo de informações comerciais\n- Palavra \"LOCALIZAÇÃO\" → Envio de localização/mapa\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "b5f7d8a5-c550-445d-bde0-cbe5c93b6a99",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "messages-upsert",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3159ba25-9264-4717-9f7a-29eb9ffad1ef",
+      "name": "Webhook",
+      "webhookId": "c215e24a-f679-4af3-a7e6-0c9ab4648137"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Digitando",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Digitando": {
+      "main": [
+        [
+          {
+            "node": "Enviar texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar texto": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1
+  },
+  "versionId": "3bb3cf61-d9f2-4260-92a1-9abce206bbda",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "14c677e8fdf97624e302cccd00dc520a61b812529c9fd4ad7b640f637c8db3aa"
+  },
+  "id": "L8zv1YbN3nGy0T5w",
+  "tags": []
+}
