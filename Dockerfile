@@ -17,5 +17,5 @@ ENV DB_TYPE=postgresdb
 # Expor porta
 EXPOSE 5678
 
-# Usar comando com caminho completo e tini
-CMD ["tini", "--", "/usr/local/bin/docker-entrypoint.sh", "n8n", "start"]
+# Comando sem tini - mais compatível com Render.com
+CMD ["/usr/local/bin/docker-entrypoint.sh", "n8n", "start"]
