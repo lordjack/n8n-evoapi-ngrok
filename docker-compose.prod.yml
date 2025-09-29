@@ -1,0 +1,60 @@
+# Docker Compose para Produção (Render.com)
+version: '3.8'
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n-prod
+    restart: unless-stopped
+    ports:
+      - "${PORT:-5678}:5678"
+    environment:
+      # n8n configurações de produção
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=root
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD}
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=${POSTGRES_HOST}
+      - DB_POSTGRESDB_PORT=${POSTGRES_PORT}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - N8N_HOST=${RENDER_EXTERNAL_HOSTNAME}
+      - N8N_PROTOCOL=https
+      - N8N_PORT=443
+      - WEBHOOK_URL=https://${RENDER_EXTERNAL_HOSTNAME}
+      - N8N_EDITOR_BASE_URL=https://${RENDER_EXTERNAL_HOSTNAME}
+      - EXECUTIONS_MODE=regular
+      - N8N_LOG_LEVEL=info
+      - N8N_DEFAULT_TIMEZONE=America/Recife
+      - N8N_COMMUNITY_PACKAGES=n8n-nodes-evolution-api
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+  evolution-api:
+    image: evoapicloud/evolution-api:latest
+    container_name: evolution-api-prod
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # Evolution API configurações de produção
+      - AUTHENTICATION_API_KEY=${AUTHENTICATION_API_KEY}
+      - SERVER_TYPE=http
+      - SERVER_PORT=8080
+      - CORS_ORIGIN=*
+      - QRCODE_GENERATE=true
+      - WEBSOCKET_ENABLED=true
+      - DATABASE_ENABLED=true
+      - DATABASE_PROVIDER=postgresql
+      - DATABASE_CONNECTION_URI=${DATABASE_URL}
+      - CACHE_REDIS_ENABLED=true
+      - CACHE_REDIS_URI=${REDIS_URL}
+      - CONFIG_SESSION_PHONE_VERSION=2.3000.1023204200
+    volumes:
+      - evolution_instances:/evolution/instances
+
+volumes:
+  n8n_data:
+  evolution_instances:
