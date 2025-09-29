@@ -7,6 +7,9 @@ services:
       - "5678:5678"
     env_file:
       - .env
+    environment:
+      # Instalar automaticamente o pacote Evolution API
+      - N8N_COMMUNITY_PACKAGES=n8n-nodes-evolution-api
     volumes:
       - n8n_data:/home/node/.n8n
     networks:
