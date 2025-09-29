@@ -8,5 +8,5 @@ ENV N8N_BASIC_AUTH_ACTIVE=true
 # Expor porta
 EXPOSE 5678
 
-# Usar node diretamente para executar n8n
-CMD ["node", "/usr/local/lib/node_modules/n8n/bin/n8n", "start"]
+# Comando mais simples possível
+CMD ["n8n"]

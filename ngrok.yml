@@ -1,5 +1,5 @@
 version: "2"
-authtoken: 
+authtoken: 28nshHH5orLVBkhIH6MZQk6wWuR_2rSY1whXsqc4Xadswq8B3
 tunnels:
   n8n:
     proto: http
