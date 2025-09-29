@@ -17,5 +17,5 @@ ENV DB_TYPE=postgresdb
 # Expor porta
 EXPOSE 5678
 
-# Comando padrão do n8n
-CMD ["n8n", "start"]
+# Usar comando com caminho completo e tini
+CMD ["tini", "--", "/usr/local/bin/docker-entrypoint.sh", "n8n", "start"]

@@ -194,9 +194,8 @@ NODE_ENV=production
 N8N_BASIC_AUTH_USER=admin
 N8N_BASIC_AUTH_PASSWORD=sua_senha_super_segura_123
 
-# ✅ BANCO - USE APENAS DATABASE_URL
+# ✅ BANCO - USE APENAS DATABASE_URL (copiada do PostgreSQL)
 DATABASE_URL=postgresql://n8n_user:abcd1234567890@dpg-abc123-a.oregon-postgres.render.com:5432/n8n_db_xyz
-DB_TYPE=postgresdb
 
 # ✅ OPCIONAL - CONFIGURAÇÕES EXTRAS
 N8N_LOG_LEVEL=info
@@ -205,7 +204,10 @@ N8N_METRICS=true
 N8N_DEFAULT_TIMEZONE=America/Recife
 ```
 
-> ⚠️ **NÃO configure** as variáveis individuais do PostgreSQL (`DB_POSTGRESDB_HOST`, `DB_POSTGRESDB_PORT`, etc.) quando usar `DATABASE_URL`!
+> ⚠️ **CRÍTICO**: 
+> - **NÃO** configure `DB_TYPE=postgresdb` quando usar `DATABASE_URL`
+> - **NÃO** configure variáveis individuais (`DB_POSTGRESDB_*`)  
+> - **Use APENAS** a `DATABASE_URL` que o Render gera automaticamente
 
 ## 🔄 Deploy Automático
 
