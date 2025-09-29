@@ -2,20 +2,22 @@
 
 ## ❌ Problemas Comuns e Soluções
 
-### 1. **Error: Command "n8n" not found** ou **tini error**
+### 1. **Error: Command not found** (tini, docker-entrypoint.sh, etc.)
 
-**Causa**: Comando CMD incorreto no Dockerfile ou problemas com tini
-**Solução**: Use o entrypoint simplificado
+**Causa**: Comandos ou caminhos incorretos no Dockerfile
+**Solução**: Use o comando mais simples possível
 
 ```dockerfile
-# ✅ CORRETO (sem tini)
-CMD ["/usr/local/bin/docker-entrypoint.sh", "n8n", "start"]
-
-# ❌ INCORRETO - com tini (pode dar erro no Render)
-CMD ["tini", "--", "/usr/local/bin/docker-entrypoint.sh", "n8n", "start"]
-
-# ❌ INCORRETO - comando direto
+# ✅ CORRETO - Comando direto
+FROM n8nio/n8n:latest
+ENV NODE_ENV=production
+ENV N8N_BASIC_AUTH_ACTIVE=true
+EXPOSE 5678
 CMD ["n8n", "start"]
+
+# ❌ INCORRETO - entrypoints que podem não existir
+CMD ["/usr/local/bin/docker-entrypoint.sh", "n8n", "start"]
+CMD ["tini", "--", "/usr/local/bin/docker-entrypoint.sh", "n8n", "start"]
 ```
 
 ### 2. **Invalid number value for DB_POSTGRESDB_PORT: ${POSTGRES_PORT}**
