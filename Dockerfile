@@ -1,24 +1,23 @@
-# Dockerfile para produção (Render.com)
-FROM node:18-alpine
+# Dockerfile simples para Render.com - apenas n8n
+FROM n8nio/n8n:latest
 
-WORKDIR /app
+# Mudar para usuário root temporariamente para instalar pacotes
+USER root
 
-# Instalar dependências do sistema
-RUN apk add --no-cache curl wget postgresql-client redis
+# Instalar dependências do sistema necessárias
+RUN apk add --no-cache curl postgresql-client
 
-# Copiar arquivos de configuração
-COPY package*.json ./
-COPY docker-compose.prod.yml ./docker-compose.yml
-COPY .env.prod ./.env
+# Voltar para o usuário n8n
+USER node
 
-# Instalar dependências se houver package.json
-RUN if [ -f package.json ]; then npm install; fi
+# Configurações de ambiente para produção
+ENV NODE_ENV=production
+ENV N8N_LOG_LEVEL=info
+ENV N8N_METRICS=true
+ENV N8N_COMMUNITY_PACKAGES=n8n-nodes-evolution-api
 
-# Copiar scripts
-COPY scripts/ ./scripts/
+# Expor a porta do n8n
+EXPOSE 5678
 
-# Expor portas
-EXPOSE 5678 8080 5432 6379
-
-# Comando para iniciar os serviços
-CMD ["sh", "-c", "echo 'Iniciando serviços...' && sleep infinity"]
+# Comando de inicialização
+CMD ["n8n", "start"]

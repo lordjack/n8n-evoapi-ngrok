@@ -1,0 +1,41 @@
+# Dockerignore para Render.com
+# Ignorar arquivos desnecessários durante o build
+
+# Arquivos de desenvolvimento local
+.env.dev
+docker-compose.dev.yml
+ngrok.yml
+
+# Arquivos de documentação e scripts locais
+README-DEPLOY.md
+RENDER-SETUP.md
+scripts/start-dev.bat
+scripts/update-webhook-url.bat
+scripts/update-webhook-url.sh
+
+# Dados do Docker local
+volumes/
+data/
+
+# Git
+.git/
+.gitignore
+
+# Node modules (se existir)
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+
+# Backup files
+*.bak
+*.backup
