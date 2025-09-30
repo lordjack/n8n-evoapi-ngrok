@@ -1,3 +1,6 @@
+# Docker Compose para Desenvolvimento Local (com ngrok)
+version: '3.8'
+
 services:
   n8n:
     image: n8nio/n8n

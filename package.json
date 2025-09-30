@@ -4,12 +4,13 @@
   "description": "N8N + Evolution API + ngrok integration",
   "main": "index.js",
   "scripts": {
-    "dev": "docker-compose -f docker-compose.dev.yml --env-file .env.dev up -d",
-    "dev:down": "docker-compose -f docker-compose.dev.yml down",
-    "dev:logs": "docker-compose -f docker-compose.dev.yml logs -f",
+    "dev": "docker-compose --env-file .env up -d",
+    "dev:down": "docker-compose down",
+    "dev:logs": "docker-compose logs -f",
     "prod": "docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d",
     "prod:down": "docker-compose -f docker-compose.prod.yml down",
-    "prod:logs": "docker-compose -f docker-compose.prod.yml logs -f"
+    "prod:logs": "docker-compose -f docker-compose.prod.yml logs -f",
+    "prod:clean": "docker-compose -f docker-compose.prod.yml down -v"
   },
   "keywords": [
     "n8n",

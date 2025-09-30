@@ -29,7 +29,10 @@ services:
       - EXECUTIONS_MODE=regular
       - N8N_LOG_LEVEL=info
       - N8N_DEFAULT_TIMEZONE=America/Recife
+      # Pacotes community - força instalação na inicialização
       - N8N_COMMUNITY_PACKAGES=n8n-nodes-evolution-api
+      - N8N_COMMUNITY_PACKAGES_ENABLED=true
+      - N8N_SKIP_WEBHOOK_DEREGISTRATION_SHUTDOWN=true
       - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
     volumes:
       - n8n_data:/home/node/.n8n

@@ -76,17 +76,16 @@ NGROK_AUTHTOKEN=seu_token_aqui
 ### 3. Gerenciar serviços
 
 ```bash
-# Iniciar todos os serviços
-docker-compose up -d
+# Desenvolvimento local
+docker-compose up -d        # ou npm run dev
+docker-compose logs -f      # ou npm run dev:logs  
+docker-compose down         # ou npm run dev:down
 
-# Ver logs
-docker-compose logs -f
-
-# Parar serviços
-docker-compose down
-
-# Parar e limpar dados
-docker-compose down -v
+# Produção auto-hospedada
+docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d  # ou npm run prod
+npm run prod:logs
+npm run prod:down
+npm run prod:clean          # limpar volumes
 ```
 
 ## 🔗 URLs e Acessos

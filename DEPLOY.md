@@ -225,3 +225,83 @@ O Render pode fazer deploy automático:
 ---
 
 **🎉 Pronto!** Sua stack n8n está rodando em produção no Render.com.
+
+---
+
+# 🔧 Configuração Rápida no Render.com
+
+## 📋 **Passo a Passo Simplificado**
+
+### 1. **Criar PostgreSQL Database**
+- Dashboard Render → **New PostgreSQL**
+- Name: `n8n-database`
+- Plan: **Free**
+
+### 2. **Configurar Web Service**
+No **Environment** do seu Web Service, adicione **APENAS**:
+
+```bash
+NODE_ENV=production
+N8N_BASIC_AUTH_USER=admin
+N8N_BASIC_AUTH_PASSWORD=sua_senha_super_segura_123
+DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DATABASE}
+N8N_COMMUNITY_PACKAGES=n8n-nodes-evolution-api
+N8N_COMMUNITY_PACKAGES_ENABLED=true
+```
+
+### 3. **Conectar Banco**
+- Web Service → **Environment** → **Link Database**
+- Selecionar PostgreSQL criado
+
+### 4. **Deploy Manual**
+- **Deploy Latest Commit**
+- Aguardar 5-10 minutos
+
+---
+
+# 🚨 Troubleshooting
+
+## ❌ **Problemas Comuns**
+
+### **Error: Command not found**
+- Verificar Dockerfile
+- Usar comando correto: `n8n start`
+
+### **Database connection failed**
+- Verificar DATABASE_URL
+- Remover variáveis `DB_POSTGRESDB_*`
+
+### **Evolution API nodes missing**
+- Verificar `N8N_COMMUNITY_PACKAGES=n8n-nodes-evolution-api`
+- Aguardar instalação do pacote
+
+### **Build failing**
+- Verificar logs no dashboard
+- Confirmar Dockerfile na raiz
+
+## ✅ **Checklist de Verificação**
+- [ ] PostgreSQL Database criado
+- [ ] DATABASE_URL configurada
+- [ ] N8N_COMMUNITY_PACKAGES configurado
+- [ ] Build sem erros
+- [ ] n8n acessível na URL
+
+---
+
+# 🔗 Evolution API Setup
+
+## **URLs Importantes:**
+- **n8n**: `https://seu-app.onrender.com`
+- **Evolution API**: Precisa ser deployada separadamente
+
+## **Como Verificar Evolution Nodes:**
+1. Acessar n8n
+2. Criar novo workflow
+3. Procurar "Evolution" nos nós
+4. Confirmar presença dos nós Evolution API
+
+## **Configurar Webhook:**
+```bash
+# URL para webhook da Evolution API
+https://seu-n8n.onrender.com/webhook-test/messages-upsert
+```
