@@ -50,12 +50,21 @@ N8N_BASIC_AUTH_USER=admin
 N8N_BASIC_AUTH_PASSWORD=sua_senha_super_secreta_123
 AUTHENTICATION_API_KEY=sua_chave_evolution_api_super_secreta_123
 
-# === BANCO DE DADOS (automático) ===
+# === PERSISTÊNCIA (automático - conectar bancos) ===
 DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DATABASE}
-
-# === REDIS (automático) ===
 REDIS_URL=${REDIS_URL}
+
+# === CONFIGURAÇÕES DE PERSISTÊNCIA ===
+DB_TYPE=postgresdb
+N8N_ENCRYPTION_KEY=chave_criptografia_workflows_super_secreta_123
+CACHE_REDIS_SAVE_INSTANCES=true
 ```
+
+**⚠️ IMPORTANTE PARA PLANO GRATUITO:**
+- ✅ **Todos os dados serão salvos no PostgreSQL** (workflows, instâncias WhatsApp)
+- ✅ **Cache no Redis** (sessões temporárias)
+- ❌ **SEM volumes locais** (dados persistem mesmo com restart)
+- 📖 **Consulte:** `PERSISTENCIA-DADOS.md` para detalhes
 
 ### **4. URLs de Acesso:**
 

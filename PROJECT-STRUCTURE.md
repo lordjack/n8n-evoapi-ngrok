@@ -33,7 +33,8 @@
     ├── deploy-production.sh     # Deploy produção auto-hospedada (Linux/Mac)
     ├── deploy-production.bat    # Deploy produção auto-hospedada (Windows)
     ├── deploy-render.sh         # Deploy Render.com (Linux/Mac)
-    └── deploy-render.bat        # Deploy Render.com (Windows)
+    ├── deploy-render.bat        # Deploy Render.com (Windows)
+    └── backup-restore.sh        # Backup/restore dados (Render.com)
 ```
 
 ---

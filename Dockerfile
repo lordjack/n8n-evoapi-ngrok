@@ -1,5 +1,6 @@
-# Dockerfile Multi-Serviço para Render.com
+# Dockerfile Multi-Serviço para Render.com (Gratuito)
 # Este container executa tanto n8n quanto Evolution API
+# CONFIGURADO PARA PERSISTÊNCIA DE DADOS com bancos externos
 
 FROM node:18-alpine
 
@@ -62,6 +63,10 @@ ENV N8N_BASIC_AUTH_ACTIVE=true
 ENV N8N_COMMUNITY_PACKAGES=n8n-nodes-evolution-api
 ENV N8N_COMMUNITY_PACKAGES_ENABLED=true
 ENV NODE_ENV=production
+# Forçar uso de banco externo - sem armazenamento local
+ENV DB_TYPE=postgresdb
+ENV N8N_SKIP_WEBHOOK_DEREGISTRATION_SHUTDOWN=true
+ENV N8N_BLOCK_ENV_ACCESS_IN_NODE=false
 
 # Configurações de ambiente para Evolution API
 ENV SERVER_TYPE=http
@@ -69,6 +74,12 @@ ENV SERVER_PORT=8080
 ENV CORS_ORIGIN=*
 ENV QRCODE_GENERATE=true
 ENV WEBSOCKET_ENABLED=true
+# Forçar uso de banco externo - sem armazenamento local
+ENV DATABASE_ENABLED=true
+ENV DATABASE_PROVIDER=postgresql
+ENV CACHE_REDIS_ENABLED=true
+ENV CACHE_REDIS_SAVE_INSTANCES=true
+ENV CONFIG_SESSION_PHONE_VERSION=2.3000.1023204200
 
 # Expor portas
 EXPOSE 5678 8080
@@ -87,6 +98,15 @@ RUN echo '#!/bin/bash\n\
     exit 1\n\
     fi\n\
     \n\
+    if [ -z "$DATABASE_URL" ]; then\n\
+    echo "❌ DATABASE_URL não está definido!"\n\
+    exit 1\n\
+    fi\n\
+    \n\
+    # Configurar n8n para banco externo\n\
+    export DB_TYPE=postgresdb\n\
+    export DATABASE_URL=${DATABASE_URL}\n\
+    \n\
     # Configurar Evolution API dinamicamente\n\
     export AUTHENTICATION_API_KEY=${AUTHENTICATION_API_KEY}\n\
     export DATABASE_CONNECTION_URI=${DATABASE_URL}\n\
@@ -98,6 +118,8 @@ RUN echo '#!/bin/bash\n\
     echo "🚀 Iniciando n8n e Evolution API..."\n\
     echo "📊 N8N será acessível na porta 5678"\n\
     echo "🔗 Evolution API será acessível na porta 8080"\n\
+    echo "🗄️  Usando PostgreSQL externo para persistência"\n\
+    echo "💾 Dados serão mantidos entre reinicializações"\n\
     \n\
     # Iniciar supervisor\n\
     exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf' > /app/start.sh
