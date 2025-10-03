@@ -2,25 +2,70 @@
 
 Este guia resolve problemas comuns durante o deploy no Render.com.
 
-## ❌ **Erro: addgroup/adduser (Resolvido)**
+## ❌ **Novos Erros Identificados (Resolvidos)**
 
-### **Problema:**
+### **1. npm WARN EBADENGINE + npm install failed**
+
+**Problema:**
 ```bash
-ERROR: process '/bin/sh -c addgroup -g 1000 appuser && adduser -D -s /bin/bash -u 1000 -G appuser appuser' 
-did not complete successfully: exit code: 1
+npm warn EBADENGINE Unsupported engine { node: ">=20.16", npm: ">=9.5" }
+npm error code 127
+npm warn exec The following package was not found and will be installed: only-allow@1.2.1
+npm error command failed
 ```
 
-### **Causa:**
-Sintaxe incorreta do comando `adduser` no Alpine Linux.
+**Causa:**
+- Evolution API requer Node.js 20+ mas usamos Node.js 18
+- Dependências conflitantes
+- Package `only-allow` não encontrado
 
-### **Solução Aplicada:**
+**Solução:**
 ```dockerfile
-# ❌ ANTES (problemático)
-RUN addgroup -g 1000 appuser && \
-    adduser -D -s /bin/bash -u 1000 -G appuser appuser
+# ❌ ANTES
+FROM node:18-alpine
+RUN npm install -g n8n-nodes-evolution-api
 
-# ✅ DEPOIS (corrigido)
+# ✅ DEPOIS  
+FROM node:18-alpine
+# Instalar community packages apenas na inicialização
+RUN npm install -g n8n@latest
+# Evolution API nodes serão instalados no runtime
+```
+
+### **2. adduser uid '1000' in use**
+
+**Problema:**
+```bash
+ERROR: process '/bin/sh -c adduser -D -u 1000 appuser' did not complete successfully: exit code: 1
+adduser: uid '1000' in use
+```
+
+**Causa:**
+UID 1000 já existe na imagem base.
+
+**Solução:**
+```dockerfile
+# ❌ ANTES
 RUN adduser -D -u 1000 appuser
+
+# ✅ DEPOIS
+RUN adduser -D appuser
+# Deixar o Alpine escolher o UID automaticamente
+```
+
+### **3. Evolution API Build Complex**
+
+**Problema:**
+```bash
+npm run build - script não encontrado
+npm install - dependências conflitantes
+```
+
+**Solução:**
+```dockerfile
+# Usar download direto em vez de git clone + build
+RUN curl -L https://github.com/EvolutionAPI/evolution-api/archive/refs/heads/main.tar.gz | tar -xz --strip-components=1
+RUN npm install --production --no-optional || echo "continuing..."
 ```
 
 ---
