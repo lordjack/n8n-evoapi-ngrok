@@ -27,6 +27,7 @@ RUN apk add --no-cache \
     curl \
     git \
     supervisor \
+    sudo \
     # Database clients
     postgresql-client \
     # Utils
@@ -41,8 +42,10 @@ RUN apk add --no-cache \
 # Instalar n8n globalmente
 RUN npm install -g n8n@latest
 
-# Tentar instalar community packages (falha silenciosa se não conseguir)
-RUN npm install -g n8n-nodes-evolution-api || echo "⚠️ Community packages will be installed at startup"
+# Tentar instalar community packages durante o build (forçar se necessário)
+RUN npm config set unsafe-perm true && \
+    npm install -g n8n-nodes-evolution-api || \
+    echo "⚠️ Community packages build failed - will be available via manual install"
 
 # =============================================================================
 # CONFIGURAÇÃO DE USUÁRIO
@@ -70,8 +73,8 @@ WORKDIR /app/evolution
 # Download da Evolution API com múltiplos fallbacks
 RUN echo "📥 Downloading Evolution API..." && \
     (git clone https://github.com/EvolutionAPI/evolution-api.git . 2>/dev/null || \
-     curl -L https://github.com/EvolutionAPI/evolution-api/archive/refs/heads/main.tar.gz | tar -xz --strip-components=1 2>/dev/null || \
-     echo "❌ Evolution API download failed, will use minimal setup") && \
+    curl -L https://github.com/EvolutionAPI/evolution-api/archive/refs/heads/main.tar.gz | tar -xz --strip-components=1 2>/dev/null || \
+    echo "❌ Evolution API download failed, will use minimal setup") && \
     echo "✅ Evolution API downloaded"
 
 # Instalar dependências (continua mesmo se falhar)
@@ -87,35 +90,35 @@ RUN echo "📦 Installing Evolution API dependencies..." && \
 RUN echo "⚙️ Configuring supervisor..." && \
     mkdir -p /etc/supervisor/conf.d && \
     { \
-        echo '[supervisord]'; \
-        echo 'nodaemon=true'; \
-        echo 'user=root'; \
-        echo 'logfile=/dev/null'; \
-        echo 'logfile_maxbytes=0'; \
-        echo 'pidfile=/tmp/supervisord.pid'; \
-        echo ''; \
-        echo '[program:n8n]'; \
-        echo 'command=n8n start'; \
-        echo 'directory=/home/appuser'; \
-        echo 'user=appuser'; \
-        echo 'autostart=true'; \
-        echo 'autorestart=true'; \
-        echo 'stdout_logfile=/dev/stdout'; \
-        echo 'stdout_logfile_maxbytes=0'; \
-        echo 'stderr_logfile=/dev/stderr'; \
-        echo 'stderr_logfile_maxbytes=0'; \
-        echo 'environment=HOME="/home/appuser",USER="appuser"'; \
-        echo ''; \
-        echo '[program:evolution-api]'; \
-        echo 'command=npm start'; \
-        echo 'directory=/app/evolution'; \
-        echo 'user=appuser'; \
-        echo 'autostart=true'; \
-        echo 'autorestart=true'; \
-        echo 'stdout_logfile=/dev/stdout'; \
-        echo 'stdout_logfile_maxbytes=0'; \
-        echo 'stderr_logfile=/dev/stderr'; \
-        echo 'stderr_logfile_maxbytes=0'; \
+    echo '[supervisord]'; \
+    echo 'nodaemon=true'; \
+    echo 'user=root'; \
+    echo 'logfile=/dev/null'; \
+    echo 'logfile_maxbytes=0'; \
+    echo 'pidfile=/tmp/supervisord.pid'; \
+    echo ''; \
+    echo '[program:n8n]'; \
+    echo 'command=n8n start'; \
+    echo 'directory=/home/appuser'; \
+    echo 'user=appuser'; \
+    echo 'autostart=true'; \
+    echo 'autorestart=true'; \
+    echo 'stdout_logfile=/dev/stdout'; \
+    echo 'stdout_logfile_maxbytes=0'; \
+    echo 'stderr_logfile=/dev/stderr'; \
+    echo 'stderr_logfile_maxbytes=0'; \
+    echo 'environment=HOME="/home/appuser",USER="appuser"'; \
+    echo ''; \
+    echo '[program:evolution-api]'; \
+    echo 'command=npm start'; \
+    echo 'directory=/app/evolution'; \
+    echo 'user=appuser'; \
+    echo 'autostart=true'; \
+    echo 'autorestart=true'; \
+    echo 'stdout_logfile=/dev/stdout'; \
+    echo 'stdout_logfile_maxbytes=0'; \
+    echo 'stderr_logfile=/dev/stderr'; \
+    echo 'stderr_logfile_maxbytes=0'; \
     } > /etc/supervisor/conf.d/supervisord.conf && \
     echo "✅ Supervisor configured"
 
@@ -153,50 +156,55 @@ ENV CONFIG_SESSION_PHONE_VERSION=2.3000.1023204200
 
 RUN echo "📝 Creating startup script..." && \
     { \
-        echo '#!/bin/bash'; \
-        echo 'set -e'; \
-        echo ''; \
-        echo '# Banner'; \
-        echo 'echo "🚀 =================================="'; \
-        echo 'echo "🚀 N8N + EVOLUTION API CONTAINER"'; \
-        echo 'echo "🚀 =================================="'; \
-        echo 'echo "📊 N8N: Port 5678"'; \
-        echo 'echo "🔗 Evolution API: Port 8080"'; \
-        echo 'echo "🗄️  Database: External PostgreSQL"'; \
-        echo 'echo "💾 Cache: External Redis"'; \
-        echo 'echo "🚀 =================================="'; \
-        echo ''; \
-        echo '# Environment validation'; \
-        echo 'echo "🔍 Validating environment..."'; \
-        echo 'if [ -z "$N8N_BASIC_AUTH_PASSWORD" ]; then'; \
-        echo '  echo "❌ N8N_BASIC_AUTH_PASSWORD not set!"'; \
-        echo '  exit 1'; \
-        echo 'fi'; \
-        echo 'if [ -z "$AUTHENTICATION_API_KEY" ]; then'; \
-        echo '  echo "❌ AUTHENTICATION_API_KEY not set!"'; \
-        echo '  exit 1'; \
-        echo 'fi'; \
-        echo 'if [ -z "$DATABASE_URL" ]; then'; \
-        echo '  echo "❌ DATABASE_URL not set!"'; \
-        echo '  exit 1'; \
-        echo 'fi'; \
-        echo 'echo "✅ Environment validation passed"'; \
-        echo ''; \
-        echo '# Install community packages'; \
-        echo 'echo "📦 Installing community packages..."'; \
-        echo 'npm install -g n8n-nodes-evolution-api || echo "⚠️ Community packages install failed"'; \
-        echo ''; \
-        echo '# Export environment variables'; \
-        echo 'export DB_TYPE=postgresdb'; \
-        echo 'export DATABASE_URL=${DATABASE_URL}'; \
-        echo 'export AUTHENTICATION_API_KEY=${AUTHENTICATION_API_KEY}'; \
-        echo 'export DATABASE_CONNECTION_URI=${DATABASE_URL}'; \
-        echo 'export CACHE_REDIS_URI=${REDIS_URL}'; \
-        echo 'export EVOLUTION_API_URL="http://localhost:8080"'; \
-        echo ''; \
-        echo '# Start services'; \
-        echo 'echo "🚀 Starting services..."'; \
-        echo 'exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf'; \
+    echo '#!/bin/bash'; \
+    echo 'set -e'; \
+    echo ''; \
+    echo '# Banner'; \
+    echo 'echo "🚀 =================================="'; \
+    echo 'echo "🚀 N8N + EVOLUTION API CONTAINER"'; \
+    echo 'echo "🚀 =================================="'; \
+    echo 'echo "📊 N8N: Port 5678"'; \
+    echo 'echo "🔗 Evolution API: Port 8080"'; \
+    echo 'echo "🗄️  Database: External PostgreSQL"'; \
+    echo 'echo "💾 Cache: External Redis"'; \
+    echo 'echo "🚀 =================================="'; \
+    echo ''; \
+    echo '# Environment validation'; \
+    echo 'echo "🔍 Validating environment..."'; \
+    echo 'if [ -z "$N8N_BASIC_AUTH_PASSWORD" ]; then'; \
+    echo '  echo "❌ N8N_BASIC_AUTH_PASSWORD not set!"'; \
+    echo '  exit 1'; \
+    echo 'fi'; \
+    echo 'if [ -z "$AUTHENTICATION_API_KEY" ]; then'; \
+    echo '  echo "❌ AUTHENTICATION_API_KEY not set!"'; \
+    echo '  exit 1'; \
+    echo 'fi'; \
+    echo 'if [ -z "$DATABASE_URL" ]; then'; \
+    echo '  echo "❌ DATABASE_URL not set!"'; \
+    echo '  exit 1'; \
+    echo 'fi'; \
+    echo 'echo "✅ Environment validation passed"'; \
+    echo ''; \
+    echo '# Check if community packages are available'; \
+    echo 'echo "📦 Checking community packages..."'; \
+    echo 'if npm list -g n8n-nodes-evolution-api >/dev/null 2>&1; then'; \
+    echo '  echo "✅ Community packages already available"'; \
+    echo 'else'; \
+    echo '  echo "⚠️ Community packages not available - install manually if needed"'; \
+    echo '  echo "Manual install: npm install n8n-nodes-evolution-api"'; \
+    echo 'fi'; \
+    echo ''; \
+    echo '# Export environment variables'; \
+    echo 'export DB_TYPE=postgresdb'; \
+    echo 'export DATABASE_URL=${DATABASE_URL}'; \
+    echo 'export AUTHENTICATION_API_KEY=${AUTHENTICATION_API_KEY}'; \
+    echo 'export DATABASE_CONNECTION_URI=${DATABASE_URL}'; \
+    echo 'export CACHE_REDIS_URI=${REDIS_URL}'; \
+    echo 'export EVOLUTION_API_URL="http://localhost:8080"'; \
+    echo ''; \
+    echo '# Start services'; \
+    echo 'echo "🚀 Starting services..."'; \
+    echo 'exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf'; \
     } > /app/start.sh && \
     chmod +x /app/start.sh && \
     chown appuser:appuser /app/start.sh && \
