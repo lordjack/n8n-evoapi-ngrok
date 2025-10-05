@@ -4,7 +4,7 @@
 
 ### **🐳 Docker & Containers**
 ```
-├── Dockerfile                    # Build para Render.com (com Evolution API nodes)
+├── Dockerfile                    # Container definitivo (n8n + Evolution API)
 ├── docker-compose.yml           # Desenvolvimento local com ngrok
 ├── docker-compose.prod.yml      # Produção auto-hospedada
 └── .dockerignore                # Arquivos ignorados no build
